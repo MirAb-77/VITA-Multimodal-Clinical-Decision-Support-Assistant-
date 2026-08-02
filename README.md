@@ -43,9 +43,39 @@ VITA accepts voice and image input in parallel, letting a patient describe sympt
 
 ---
 
-## ⚙️ System Architecture & Workflow
+## 🏛️ Architecture
 
-The pipeline runs across four coordinated phases — voice input, image input, multimodal reasoning, and voice output — unified through a Gradio interface layer.
+VITA is organized into four layers stacked from user-facing surface down to raw inference. The **Interface Layer** (Gradio + Flask) handles session state, audio capture, and image upload. Below it, the **Input Processing Layer** splits into two parallel tracks — Whisper for speech-to-text and OpenCV-preprocessed frames routed to LLaMA 3 Vision — so voice and image are transcribed and embedded independently before ever touching the reasoning core. The **Reasoning Core** is where the custom transformer-style fusion logic lives: it takes the text transcript and the 1024-dimensional image embedding, aligns them into a shared representation, and produces a diagnosis, a confidence score, and a recommendation. The **Output Layer** converts that response into speech via ElevenLabs, with gTTS as an offline-friendly fallback, and returns both the audio and text back through the interface.
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, sans-serif', 'fontSize': '15px', 'darkMode': true, 'background': '#0d1117'}}}%%
+flowchart TB
+    UI["🖥️ Interface Layer<br/>Gradio + Flask"]
+    UI --> IN1["🎙️ Speech Track<br/>PyAudio → Whisper STT"]
+    UI --> IN2["🖼️ Vision Track<br/>OpenCV → LLaMA 3 Vision"]
+    IN1 --> CORE["🧠 Reasoning Core<br/>Transformer Fusion · Diagnosis · Confidence"]
+    IN2 --> CORE
+    CORE --> OUT["🔊 Output Layer<br/>ElevenLabs → gTTS Fallback"]
+    OUT --> UI
+
+    classDef uiNode fill:#1a1a2e,stroke:#e94560,stroke-width:2.5px,color:#f1f1f1,rx:10,ry:10
+    classDef inNode fill:#0f3057,stroke:#00b4d8,stroke-width:2.5px,color:#e8f6ff,rx:10,ry:10
+    classDef coreNode fill:#3d0e1f,stroke:#ff477e,stroke-width:3px,color:#ffe3ec,rx:10,ry:10
+    classDef outNode fill:#0b3d2e,stroke:#2ec4b6,stroke-width:2.5px,color:#e3fff8,rx:10,ry:10
+
+    class UI uiNode
+    class IN1,IN2 inNode
+    class CORE coreNode
+    class OUT outNode
+
+    linkStyle default stroke:#8892a6,stroke-width:2px
+```
+
+---
+
+## ⚙️ Workflow — Phase-by-Phase Execution
+
+The diagram below traces the same architecture as an execution timeline: voice input, image input, multimodal reasoning, and voice output, unified through the Gradio interface. Node shading darkens through each phase to signal the flow from raw input toward final reasoning and back out to speech.
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, sans-serif', 'fontSize': '15px'}}}%%
@@ -83,12 +113,12 @@ flowchart LR
     C3 --> D1
     D3 --> E1
 
-    classDef phase2 fill:#B8F27C,stroke:#4C8A1E,stroke-width:2.5px,color:#0a2e00,rx:10,ry:10
-    classDef phase4 fill:#FF9FD1,stroke:#C4127F,stroke-width:2.5px,color:#3d0021,rx:10,ry:10
-    classDef phase1 fill:#FFD166,stroke:#D68A00,stroke-width:2.5px,color:#3d2900,rx:10,ry:10
-    classDef phase3 fill:#7EC8FF,stroke:#1568C4,stroke-width:2.5px,color:#00264d,rx:10,ry:10
-    classDef phase5 fill:#FF9FD1,stroke:#C4127F,stroke-width:2.5px,color:#3d0021,rx:10,ry:10
-    classDef nodeStyle fill:#ffffff,stroke:#333,stroke-width:1.5px,color:#111,rx:6,ry:6
+    classDef phase2 fill:#0f3d1e,stroke:#3ddc84,stroke-width:2.5px,color:#e8ffef,rx:10,ry:10
+    classDef phase4 fill:#4a0e2e,stroke:#ff477e,stroke-width:2.5px,color:#ffe3ec,rx:10,ry:10
+    classDef phase1 fill:#5c3d00,stroke:#ffb703,stroke-width:2.5px,color:#fff3d6,rx:10,ry:10
+    classDef phase3 fill:#0a2a4a,stroke:#00b4d8,stroke-width:2.5px,color:#e3f7ff,rx:10,ry:10
+    classDef phase5 fill:#3d0e1f,stroke:#e94560,stroke-width:2.5px,color:#ffe3ec,rx:10,ry:10
+    classDef nodeStyle fill:#1c1c1c,stroke:#999,stroke-width:1.5px,color:#f1f1f1,rx:6,ry:6
 
     class P2 phase2
     class P4 phase4
@@ -97,7 +127,7 @@ flowchart LR
     class P5 phase5
     class A1,A2,A3,B1,C1,C2,C3,D1,D2,D3,E1 nodeStyle
 
-    linkStyle default stroke:#555,stroke-width:2px
+    linkStyle default stroke:#8892a6,stroke-width:2px
 ```
 
 The table below maps each stage of the diagram to its concrete input, process, and output.
