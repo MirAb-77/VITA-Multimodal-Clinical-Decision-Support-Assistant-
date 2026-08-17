@@ -9,7 +9,7 @@
 [![Groq](https://img.shields.io/badge/Vision-LLaMA%203%20via%20GROQ-F55036?style=for-the-badge&logo=meta&logoColor=white)](https://groq.com/)
 [![ElevenLabs](https://img.shields.io/badge/TTS-ElevenLabs-000000?style=for-the-badge)](https://elevenlabs.io/)
 [![Gradio](https://img.shields.io/badge/Interface-Gradio%20%2B%20Flask-FF7C00?style=for-the-badge&logo=gradio&logoColor=white)](https://www.gradio.app/)
-![Uploading Screenshot 2026-08-17 160020.png…]()
+
 
 <img width="1607" height="979" alt="VIta - 1" src="https://github.com/user-attachments/assets/b75be57c-65be-42e0-bf36-1cd36e759807" />
 
